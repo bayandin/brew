@@ -152,6 +152,7 @@
 
 # Unignore our root-level metadata files.
 !/.editorconfig
+!/.gitattributes
 !/.gitignore
 !/.yardopts
 !/CHANGELOG.md
