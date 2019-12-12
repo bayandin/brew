@@ -27,6 +27,7 @@ GEM
       concurrent-ruby (~> 1.0)
     jaro_winkler (1.5.4)
     json (2.3.0)
+    lazy_priority_queue (0.1.1)
     mechanize (2.7.6)
       domain_name (~> 0.5, >= 0.5.1)
       http-cookie (~> 1.0)
@@ -56,6 +57,9 @@ GEM
     plist (3.5.0)
     rainbow (3.0.0)
     rdiscount (2.2.0.1)
+    rgl (0.5.6)
+      lazy_priority_queue (~> 0.1.0)
+      stream (~> 0.5.2)
     ronn (0.7.3)
       hpricot (>= 0.8.2)
       mustache (>= 0.7.0)
@@ -98,6 +102,7 @@ GEM
       json (>= 1.8, < 3)
       simplecov-html (~> 0.10.0)
     simplecov-html (0.10.2)
+    stream (0.5.2)
     term-ansicolor (1.7.1)
       tins (~> 1.0)
     thor (0.20.3)
@@ -122,6 +127,7 @@ DEPENDENCIES
   mechanize
   parallel_tests
   plist
+  rgl
   ronn
   rspec
   rspec-its
@@ -134,4 +140,4 @@ DEPENDENCIES
   simplecov
 
 BUNDLED WITH
-   1.17.2
+   1.17.3
