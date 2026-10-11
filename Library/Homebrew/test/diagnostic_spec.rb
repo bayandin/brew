@@ -6,7 +6,7 @@ require "install"
 
 RSpec.describe Homebrew::Diagnostic do
   before do
-    allow(described_class).to receive(:support_tiers).and_return([])
+    allow(described_class).to receive(:support_findings).and_return([])
   end
 
   it "reports only the least supported tier after all checks" do
@@ -26,19 +26,23 @@ RSpec.describe Homebrew::Diagnostic do
       Warning: First warning
       Warning: Second warning
 
-      #{Homebrew::Diagnostic::Finding.support_tier_message(tier: 3)&.chomp}
+      #{Homebrew::Diagnostic::Finding.support_tier_message(
+        [Homebrew::Diagnostic::Finding.new("Second warning", tier: 3)],
+      )&.chomp}
     EOS
   end
 
   it "includes a custom compiler in the final tier without repeating the tier warning" do
     expect do
       Homebrew::Install.check_cc_argv("clang")
-      described_class.support_tiers << 2
+      described_class.support_findings << Homebrew::Diagnostic::Finding.new("Tier 2 warning", tier: 2)
       described_class.report_support_tier
     end.to output(<<~EOS).to_stderr
       Warning: You passed `--cc=clang`.
 
-      #{Homebrew::Diagnostic::Finding.support_tier_message(tier: 3)&.chomp}
+      #{Homebrew::Diagnostic::Finding.support_tier_message(
+        [Homebrew::Diagnostic::Finding.new("You passed `--cc=clang`.", tier: 3)],
+      )&.chomp}
     EOS
   end
 
@@ -47,10 +51,12 @@ RSpec.describe Homebrew::Diagnostic do
       *HOMEBREW_RUBY_EXEC_ARGS,
       "-I", $LOAD_PATH.join(File::PATH_SEPARATOR),
       "-rglobal", "-rdiagnostic",
-      "-e", 'Homebrew::Diagnostic.support_tiers.concat([2, 3, 2]); abort "command failed"'
+      "-e", "diagnostic = Homebrew::Diagnostic",
+      "-e", "diagnostic.support_findings.concat([2, 3, 2].map { diagnostic::Finding.new(it.to_s, tier: it) })",
+      "-e", 'abort "command failed"'
     )
 
-    expect([stderr.scan(/^This is a Tier \d configuration:/), status.exitstatus])
-      .to eq([["This is a Tier 3 configuration:"], 1])
+    expect([stderr.scan(/^This is a Tier \d configuration:\n- \d/), status.exitstatus])
+      .to eq([["This is a Tier 3 configuration:\n- 3"], 1])
   end
 end

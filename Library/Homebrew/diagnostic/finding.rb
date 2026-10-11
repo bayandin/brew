@@ -95,25 +95,27 @@ module Homebrew
         tiers.grep(Integer).max || 1
       end
 
-      sig { params(tier: T.any(Integer, String, Symbol)).returns(T.nilable(String)) }
-      def self.support_tier_message(tier:)
-        return if tier.to_s == "1"
+      sig { params(findings: T::Array[Finding]).returns(T.nilable(String)) }
+      def self.support_tier_message(findings)
+        tier = support_tier(findings.map(&:tier))
+        return if tier == 1
 
-        tier_title, tier_slug, tier_issues = if tier.to_s == "unsupported"
+        tier_title, tier_slug, tier_issues = if tier == :unsupported
           ["an Unsupported", "unsupported", "Do not report any issues"]
         else
-          ["a Tier #{tier}", "tier-#{tier.to_s.downcase}", "You can report issues with Tier #{tier} configurations"]
+          ["a Tier #{tier}", "tier-#{tier}", "You can report issues with Tier #{tier} configurations"]
         end
 
         tier_issues = "Report issues to the upstream Nix project, not" if OS.nix_managed_homebrew?
 
-        <<~EOS
-          This is #{tier_title} configuration:
-            #{Formatter.url("https://docs.brew.sh/Support-Tiers##{tier_slug}")}
-          #{Formatter.bold("#{tier_issues} to Homebrew/* repositories!")}
-            #{Formatter.url(OS::ISSUES_URL) if defined?(OS::ISSUES_URL)}
-          Read the above document before opening any issues or PRs.
-        EOS
+        [
+          "This is #{tier_title} configuration:",
+          *findings.select { it.tier == tier }.map { "- #{it.text.partition("\n\n").first.split.join(" ")}" }.uniq,
+          Formatter.bold("#{tier_issues} to Homebrew/* repositories!"),
+          "Read the following before opening any issues or PRs:",
+          "  #{Formatter.url("https://docs.brew.sh/Support-Tiers##{tier_slug}")}",
+          *("  #{Formatter.url(OS::ISSUES_URL)}" if defined?(OS::ISSUES_URL)),
+        ].join("\n")
       end
     end
   end

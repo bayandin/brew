@@ -64,6 +64,28 @@ RSpec.describe Homebrew::Diagnostic::Checks do
       .to match("Xcode alone is not sufficient on Big Sur")
   end
 
+  describe "#check_xcode_up_to_date" do
+    it "names the latest Xcode version" do
+      allow(GitHub::Actions).to receive(:env_set?).and_return(false)
+      allow(OS::Mac).to receive(:version).and_return(MacOSVersion.new("26"))
+      allow(OS::Mac::Xcode).to receive_messages(outdated?: true, below_minimum_version?: false,
+                                                version: Version.new("26.6"), latest_version: "27.0")
+
+      expect(checks.check_xcode_up_to_date&.text).to eq("Your Xcode (26.6) is older than the latest version (27.0).")
+    end
+  end
+
+  describe "#check_clt_up_to_date" do
+    it "names the latest Command Line Tools version" do
+      allow(GitHub::Actions).to receive(:env_set?).and_return(false)
+      allow(OS::Mac).to receive(:version).and_return(MacOSVersion.new("13"))
+      allow(OS::Mac::CLT).to receive_messages(outdated?: true, below_minimum_version?: false)
+
+      expect(checks.check_clt_up_to_date&.text)
+        .to eq("Your Command Line Tools are older than the latest version (for Xcode 15.1).")
+    end
+  end
+
   describe "#check_xcode_license_approved" do
     it "returns a finding when the Xcode licence is unaccepted" do
       system "false"

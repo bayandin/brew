@@ -196,7 +196,7 @@ module OS
           end
 
           ::Homebrew::Diagnostic::Finding.new(
-            "Your Xcode (#{MacOS::Xcode.version}) is outdated.",
+            "Your Xcode (#{MacOS::Xcode.version}) is older than the latest version (#{MacOS::Xcode.latest_version}).",
             tier:        2,
             remediation:,
           )
@@ -216,7 +216,7 @@ module OS
           return if GitHub::Actions.env_set?
 
           ::Homebrew::Diagnostic::Finding.new(
-            "A newer Command Line Tools release is available.",
+            "Your Command Line Tools are older than the latest version (for Xcode #{MacOS::CLT.latest_version}).",
             tier:        2,
             remediation: MacOS::CLT.update_instructions,
           )

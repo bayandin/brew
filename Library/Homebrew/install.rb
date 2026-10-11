@@ -39,8 +39,9 @@ module Homebrew
       def check_cc_argv(cc)
         return unless cc
 
-        opoo "You passed `--cc=#{cc}`."
-        Diagnostic.support_tiers << 3
+        finding = Diagnostic::Finding.new("You passed `--cc=#{cc}`.", tier: 3)
+        opoo finding.to_s
+        Diagnostic.support_findings << finding
       end
 
       sig { params(all_fatal: T::Boolean).void }

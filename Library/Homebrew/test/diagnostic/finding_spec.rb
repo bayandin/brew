@@ -88,16 +88,29 @@ RSpec.describe Homebrew::Diagnostic::Finding do
     end
 
     it "returns nil for Tier 1" do
-      expect(described_class.support_tier_message(tier: 1)).to be_nil
+      expect(described_class.support_tier_message([described_class.new("Fine")])).to be_nil
     end
 
     it "links to the tier-specific documentation" do
-      message = described_class.support_tier_message(tier: 2)
+      message = described_class.support_tier_message([described_class.new("Outdated", tier: 2)])
       expect(message).to include("https://docs.brew.sh/Support-Tiers#tier-2")
     end
 
+    it "lists the first paragraph of each finding at the reported tier" do
+      message = described_class.support_tier_message([
+        described_class.new("Outdated Xcode.\nPlease update.\n\nMore details.", tier: 2),
+        described_class.new("Outdated CLT.", tier: 2),
+        described_class.new("Minor issue.", tier: 1),
+      ])
+      expect(message).to start_with(<<~EOS)
+        This is a Tier 2 configuration:
+        - Outdated Xcode. Please update.
+        - Outdated CLT.
+      EOS
+    end
+
     it "describes unsupported configurations" do
-      message = described_class.support_tier_message(tier: :unsupported)
+      message = described_class.support_tier_message([described_class.new("Too old", tier: :unsupported)])
       expect(message).to include("This is an Unsupported configuration:")
         .and include("https://docs.brew.sh/Support-Tiers#unsupported")
     end
@@ -105,7 +118,7 @@ RSpec.describe Homebrew::Diagnostic::Finding do
     it "points Nix-managed installs at the upstream Nix project" do
       allow(OS).to receive(:nix_managed_homebrew?).and_return(true)
 
-      message = described_class.support_tier_message(tier: 2)
+      message = described_class.support_tier_message([described_class.new("Nix", tier: 2)])
       expect(message).to include("Report issues to the upstream Nix project, not")
     end
   end

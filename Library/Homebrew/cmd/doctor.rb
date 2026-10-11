@@ -85,10 +85,11 @@ module Homebrew
           first_warning = false
         end
 
-        finding_maps = finding_collection.map(&:to_h)
-        tier = Diagnostic::Finding.support_tier(finding_collection.map(&:tier))
         if args.json?
-          puts JSON.pretty_generate({ tier:, findings: finding_maps }).gsub(/\[\n\n\s*\]/, "[]")
+          puts JSON.pretty_generate({
+            tier:     Diagnostic::Finding.support_tier(finding_collection.map(&:tier)),
+            findings: finding_collection.map(&:to_h),
+          }).gsub(/\[\n\n\s*\]/, "[]")
 
           return
         end
@@ -96,7 +97,7 @@ module Homebrew
         return if args.quiet?
 
         if Homebrew.failed?
-          puts Diagnostic::Finding.support_tier_message(tier:)
+          puts Diagnostic::Finding.support_tier_message(finding_collection)
         else
           puts "Your system is ready to brew."
         end

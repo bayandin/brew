@@ -24,15 +24,15 @@ module Homebrew
   module Diagnostic
     extend Utils::Output::Mixin
 
-    sig { returns(T::Array[T.any(Integer, Symbol)]) }
-    def self.support_tiers
-      @support_tiers ||= T.let([], T.nilable(T::Array[T.any(Integer, Symbol)]))
+    sig { returns(T::Array[Finding]) }
+    def self.support_findings
+      @support_findings ||= T.let([], T.nilable(T::Array[Finding]))
     end
 
     sig { void }
     def self.report_support_tier
-      message = Finding.support_tier_message(tier: Finding.support_tier(support_tiers))
-      support_tiers.clear
+      message = Finding.support_tier_message(support_findings)
+      support_findings.clear
       $stderr.puts "\n", message if message
     end
 
@@ -44,7 +44,7 @@ module Homebrew
       failed = T.let(false, T::Boolean)
       checks.public_send(type).each do |check|
         Array(checks.public_send(check)).each do |finding|
-          support_tiers << finding.tier
+          support_findings << finding
           if fatal
             failed = true
             ofail finding.to_s
